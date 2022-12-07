@@ -1,0 +1,15 @@
+notes: Pairwise comparison without replicates with default parameter setting.
+
+data:
+    KO:
+        rep1: m6a_test/HEK293T-METTL3-KO-rep1/dataprep
+    WT:
+        rep1: m6a_test/HEK293T-WT-rep1/dataprep    
+    
+out: m6a_test/out
+
+method:
+    prefiltering:
+        method: t-test
+        threshold: 0.1
+
