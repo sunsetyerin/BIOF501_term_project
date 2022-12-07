@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 # coding=utf-8
 
+#localrules:
+
 include: "common.snake"
 
 configfile: "configs/sample_config.yaml"
 
-rule all:
-     """
-     Generate default target files.
-     """
-     input: 
-        expand(
-            os.path.join(
-            "m6a_test",
-            "{sample}",
-            "diffmode"),
-            sample=list(config["samples"].keys())
-            ),
+# rule all:
+#      """
+#      Generate default target files.
+#      """
+#      input: 
+#         expand(
+#             os.path.join(
+#             "m6a_test",
+#             "{sample}",
+#             "diffmode"),
+#             sample=list(config["samples"].keys())
+#             ),
 
 rule aligning:
     """
@@ -146,12 +148,12 @@ rule nanopolish_eventalign:
             "fastq",
             "basecalled.fastq"),
         genome = config["xpore"]["transcriptomic_fasta"], # transcriptome reference should be used for nanopolish eventalign
-        # nanopolish_indexes = multiext(os.path.join(
-        #         "data",
-        #         "{sample}",
-        #         "guppy_basecall",
-        #         "pass_concat.fastq"),
-        #         ".index", ".index.fai", ".index.gzi", ".index.readdb"),
+        nanopolish_indexes = multiext(os.path.join(
+            "m6a_test",
+            "{sample}",
+            "fastq",
+            "basecalled.fastq"),
+            ".index", ".index.fai", ".index.gzi", ".index.readdb"),
         bam_sort = os.path.join(
             "m6a_test",
             "{sample}",
@@ -198,8 +200,8 @@ rule xpore_dataprep:
             "{sample}",
             "nanopolish",
             "eventalign.txt"),
-        genomic_annotation = config["xpore"]["annotation_file"],
-        transcriptome = config["xpore"]["transcriptomic_fasta"],
+        # genomic_annotation = config["xpore"]["annotation_file"],
+        # transcriptome = config["xpore"]["transcriptomic_fasta"],
     output:
         xpore_dataprep = multiext(os.path.join(
             "m6a_test",
@@ -207,6 +209,7 @@ rule xpore_dataprep:
             "dataprep",
             "data"),
             ".index", ".json", ".log", ".readcount"),
+        idx= "m6a_test/{sample}/dataprep/eventalign.index",
     params: outdir= os.path.join("m6a_test","{sample}","dataprep"),
     log:
         os.path.join("logs","xpore","{sample}_xpore_dataprep.log"),
@@ -219,10 +222,10 @@ rule xpore_dataprep:
     shell:
         " ".join(["xpore dataprep", 
                   "--eventalign {input.nanopolish_eventalign}",
-                  "--gtf_or_gff {input.genomic_annotation}",
-                  "--transcript_fasta {input.transcriptome}",
+                  #"--gtf_or_gff {input.genomic_annotation}",
+                  #"--transcript_fasta {input.transcriptome}",
                   "--out_dir {params.outdir}",
-                  "--genome",
+                  #"--genome",
                   "--n_processes {resources.cpus}",
                   "&> >(tee {log})"])
 
@@ -238,14 +241,11 @@ rule xpore_diffmode:
             "dataprep",
             "data"),
             ".index", ".json", ".log", ".readcount"),
+        idx = "m6a_test/{sample}/dataprep/eventalign.index",
         xpore_config = config["xpore"]["diffmod_config"],
     output:
-        xpore_diffmode = os.path.join(
-            "m6a_test",
-            "{sample}",
-            "diffmode"),
-    params:
-        
+        table=os.path.join("m6a_test","{sample}","diffmode","diffmod.table"),
+        log=os.path.join("m6a_test","{sample}","diffmode","diffmod.log"),
     log:
         os.path.join("logs","xpore","{sample}_xpore_diffmode.log"),
     conda:
@@ -255,7 +255,4 @@ rule xpore_diffmode:
         time_limit = 2400,
         mem_mb = 1000,
     shell:
-        " ".join(["xpore diffmod", 
-                  "--config {input.xpore_config}",
-                  "> {output.xpore_diffmode}",
-                  "&> >(tee {log})"])
+        "xpore diffmod --config {input.xpore_config} --n_processes {resources.cpus} 2> {log}"
