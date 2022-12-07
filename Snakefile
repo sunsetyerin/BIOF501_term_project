@@ -13,5 +13,6 @@ rule general:
         expand(os.path.join(
             "m6a_test",
             "{sample}",
-            "diffmode"),
+            "diffmode",
+            "diffmod.table"),
             sample=list(config["samples"].keys())),
