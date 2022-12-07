@@ -1,0 +1,18 @@
+#!/usr/bin python3
+# coding=utf-8
+
+# Tools specifics
+xpore:
+
+   transcriptomic_fasta: m6a_test/demo.fa
+   annotation_file: m6a_test/demo.gtf
+   diffmod_config: m6a_test/Hek293T_config.yml
+     
+# Samples and files
+samples:
+   
+   HEK293T-METTL3-KO-rep1:
+      raw_fast5_dir: m6a_test/HEK293T-METTL3-KO-rep1/fast5
+
+   HEK293T-WT-rep1:
+      raw_fast5_dir: m6a_test/HEK293T-WT-rep1/fast5
