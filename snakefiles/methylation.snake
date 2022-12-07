@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+# coding=utf-8
+
+include: "common.snake"
+
+configfile: "configs/sample_config.yaml"
+
+rule all:
+     """
+     Generate default target files.
+     """
+     input: 
+        expand(
+            os.path.join(
+            "m6a_test",
+            "{sample}",
+            "diffmode"),
+            sample=list(config["samples"].keys())
+            ),
+
+rule aligning:
+    """
+    align fastq to transcriptome
+    """
+    input:
+        fastq = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "fastq",
+            "basecalled.fastq"),
+    params:
+        ref = config["xpore"]["transcriptomic_fasta"] 
+    output:
+        aligned = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "bamtx",
+            "aligned.sam"),
+    log:
+        os.path.join("logs", "xpore", "{sample}_aligning.log"),
+    conda:
+        os.path.join("..", "envs", "environment.yaml"),
+    resources:
+        cpus = 50,
+        time_limit = 2400,
+        mem_mb = 1000,
+    shell:
+        " ".join(["minimap2 -ax map-ont -uf -t {resources.cpus} --secondary=no",
+                  "{params.ref} {input.fastq} > {output.aligned}",
+                  "2>> {log}"])
+
+rule sam2bam:
+    """
+    convert .sam file from minimap2 to bam using samtools view
+    """
+    input:
+        sam = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "bamtx",
+            "aligned.sam"),
+    output:
+        bam = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "bamtx",
+            "aligned.bam"),
+    log:
+        os.path.join("logs", "xpore", "{sample}_sam2bam.log"),
+    conda:
+        os.path.join("..", "envs", "environment.yaml"),
+    resources:
+        cpus = 50,
+        time_limit = 2400,
+        mem_mb = 1000,
+    shell:
+        " ".join(["samtools view -Sb {input.sam} | samtools sort -o {output.bam} - &>> {log}"])
+
+rule bamidx:
+    """
+    index bam file with samtools index
+    """
+    input:
+        bam_sort = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "bamtx",
+            "aligned.bam"),
+    output:
+        bamidx = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "bamtx",
+            "aligned.bam.bai"),
+    log:
+        os.path.join("logs", "xpore", "{sample}_bamidx.log"),
+    conda:
+        os.path.join("..", "envs", "environment.yaml"),
+    resources:
+        cpus = 50,
+        time_limit = 2400,
+        mem_mb = 1000,
+    shell:
+        " ".join(["samtools index {input.bam_sort} > {output.bamidx} &>> {log}"])
+
+rule nanopolish_index:
+    """
+    index fastq reads with fast5 files
+    """
+    input:
+        fast5_dir = fast5_directory,
+        fastq = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "fastq",
+            "basecalled.fastq"),
+    output:
+        nanopolish_index = multiext(os.path.join(
+            "m6a_test",
+            "{sample}",
+            "fastq",
+            "basecalled.fastq"),
+            ".index", ".index.fai", ".index.gzi", ".index.readdb"),#set the output location but outputs are generated in the same directory as fastq files
+    log:
+        os.path.join("logs", "xpore", "{sample}_nanopolish_index.log"),
+    conda:
+        os.path.join("..", "envs", "nanopolish.yaml"),
+    resources:
+        cpus = 50,
+        time_limit = 2400,
+        mem_mb = 1000,
+    shell:
+        " ".join(["nanopolish index",
+                  "--directory {input.fast5_dir} {input.fastq} --verbose",
+                #   "> {output.nanopolish_index}",
+                  "&> >(tee {log})"])
+
+rule nanopolish_eventalign:
+    """
+    data preparation for xpore command
+    """
+    input:
+        fastq = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "fastq",
+            "basecalled.fastq"),
+        genome = config["xpore"]["transcriptomic_fasta"], # transcriptome reference should be used for nanopolish eventalign
+        # nanopolish_indexes = multiext(os.path.join(
+        #         "data",
+        #         "{sample}",
+        #         "guppy_basecall",
+        #         "pass_concat.fastq"),
+        #         ".index", ".index.fai", ".index.gzi", ".index.readdb"),
+        bam_sort = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "bamtx",
+            "aligned.bam"),
+        bam_idx = os.path.join( #this is for placeholder
+            "m6a_test",
+            "{sample}",
+            "bamtx",
+            "aligned.bam.bai"),
+    output:
+        nanopolish_eventalign = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "nanopolish",
+            "eventalign.txt"),
+    log:
+        os.path.join("logs", "xpore", "{sample}_nanopolish_eventalign.log"),
+    conda:
+        os.path.join("..", "envs", "nanopolish.yaml"),
+    resources:
+        cpus = 100,
+        time_limit = 2400,
+        mem_mb = 32000,
+    shell:
+        " ".join(["nanopolish eventalign",
+                  "--reads {input.fastq}",
+                  "--bam {input.bam_sort}",
+                  "--genome {input.genome}",
+                  "--signal-index",
+                  "--scale-events",
+                  "--threads {resources.cpus}",
+                  "> {output.nanopolish_eventalign}",
+                  "&> >(tee {log})"])
+
+rule xpore_dataprep: 
+    """
+    methylation analysis xpore
+    data preparation for methylation analysis
+    """
+    input:
+        nanopolish_eventalign = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "nanopolish",
+            "eventalign.txt"),
+        genomic_annotation = config["xpore"]["annotation_file"],
+        transcriptome = config["xpore"]["transcriptomic_fasta"],
+    output:
+        xpore_dataprep = multiext(os.path.join(
+            "m6a_test",
+            "{sample}",
+            "dataprep",
+            "data"),
+            ".index", ".json", ".log", ".readcount"),
+    params: outdir= os.path.join("m6a_test","{sample}","dataprep"),
+    log:
+        os.path.join("logs","xpore","{sample}_xpore_dataprep.log"),
+    conda:
+        os.path.join("..", "envs", "environment.yaml"),
+    resources:
+        cpus = 10,
+        time_limit = 2400,
+        mem_mb = 1000,
+    shell:
+        " ".join(["xpore dataprep", 
+                  "--eventalign {input.nanopolish_eventalign}",
+                  "--gtf_or_gff {input.genomic_annotation}",
+                  "--transcript_fasta {input.transcriptome}",
+                  "--out_dir {params.outdir}",
+                  "--genome",
+                  "--n_processes {resources.cpus}",
+                  "&> >(tee {log})"])
+
+rule xpore_diffmode: 
+    """
+    methylation analysis xpore
+    actual metylation differential analysis
+    """
+    input:
+        xpore_dataprep = multiext(os.path.join(
+            "m6a_test",
+            "{sample}",
+            "dataprep",
+            "data"),
+            ".index", ".json", ".log", ".readcount"),
+        xpore_config = config["xpore"]["diffmod_config"],
+    output:
+        xpore_diffmode = os.path.join(
+            "m6a_test",
+            "{sample}",
+            "diffmode"),
+    params:
+        
+    log:
+        os.path.join("logs","xpore","{sample}_xpore_diffmode.log"),
+    conda:
+        os.path.join("..", "envs", "environment.yaml"),
+    resources:
+        cpus = 10,
+        time_limit = 2400,
+        mem_mb = 1000,
+    shell:
+        " ".join(["xpore diffmod", 
+                  "--config {input.xpore_config}",
+                  "> {output.xpore_diffmode}",
+                  "&> >(tee {log})"])
