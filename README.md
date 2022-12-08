@@ -2,4 +2,4 @@
 repository for UBC BIOF501 term project 
 
 
-
+![test](figs/snakemake_workflow.png)
