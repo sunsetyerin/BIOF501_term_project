@@ -1,5 +1,6 @@
 # BIOF501_term_project
 repository for UBC BIOF501 term project 
 
-
-![snakemake workflow](./dag.pdf)
+<p align="center">
+<img src="./daf.pdf" width="400" height="700">
+</p>
