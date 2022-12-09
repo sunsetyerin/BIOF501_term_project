@@ -30,7 +30,7 @@ By comparing two different conditions, xPore will run differnetial m6a methylati
 1. Align to transcriptome 
 2. Bam files indexing 
 3. Resquiggle using `nanopolish`
-4. xPore differentail RNA modifications analysis
+4. `xPore` differentail RNA modifications analysis
 
 ## 4. Results 
 
