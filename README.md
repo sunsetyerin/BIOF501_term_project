@@ -1,15 +1,6 @@
 # BIOF501_term_project
 # Differential m6A RNA methylation with Direct RNA sequencing 
 
-1. [Background](#background)
-2. [Dataset Description](#dataset description)
-3. [Workflow Visualization](#workflow visualization)
-4. [Results](#results)
-5. [Cloning](#cloning)
-6. [Environment](#python-3-environment)
-7. [Snakemake usage of this repo](#snakemake-usage-of-this-repo)
-8. [Perform the processing of a single sample](#perform-the-processing-of-a-single-sample)
-
 ## 1. Background
 
 N6-methyladenosine (m6A) is the most common RNA modifications modulating functions of cellular RNA species.
