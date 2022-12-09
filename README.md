@@ -15,9 +15,9 @@ Demo samples are downloaded from [link](https://zenodo.org/record/5162402/files/
 
 METTL3 is the most dominant m6A methylation writter.
 
-`HEK293T-METTL3-KO-rep1` is METTL3 knockout (KO) of HEK293T cell line. `(m6a_test/HEK293T-METTL3-KO-rep1/fast5/)`
+`HEK293T-METTL3-KO-rep1` is METTL3 knockout (KO) of HEK293T cell line. `(m6a_test/HEK293T-METTL3-KO-rep1/fastq/)`
 
-`HEK293T-WT-rep1` is wild-type (WT) of HEK293T cell line. `(m6a_test/HEK293T-WT-rep1/fast5/)`
+`HEK293T-WT-rep1` is wild-type (WT) of HEK293T cell line. `(m6a_test/HEK293T-WT-rep1/fastq/)`
 
 By comparing two different conditions, xPore will run differnetial m6a methylation analysis.
 
