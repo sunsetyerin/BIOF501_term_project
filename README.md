@@ -2,11 +2,13 @@
 # Differential m6A RNA methylation with Direct RNA sequencing 
 
 1. [Background](#background)
-2. 
-. [Cloning](#cloning)
-. [Environment](#python-3-environment)
-. [Snakemake usage of this repo](#snakemake-usage-of-this-repo)
-. [Perform the processing of a single sample](#perform-the-processing-of-a-single-sample)
+2. [Dataset Description](#dataset description)
+3. [Workflow Visualization](#workflow visualization)
+4. [Results](#results)
+5. [Cloning](#cloning)
+6. [Environment](#python-3-environment)
+7. [Snakemake usage of this repo](#snakemake-usage-of-this-repo)
+8. [Perform the processing of a single sample](#perform-the-processing-of-a-single-sample)
 
 ## 1. Background
 
@@ -52,7 +54,7 @@ ENSG00000159111   47824212  GGACT               -0.828023   1.103790e-88        
 ENSG00000159111   47824138  GGGAC               -0.757891   1.898161e-73        -18.128515  ...      3.965195    9.877299       0.861480     0.359984           lower  9.708552e-08
 ```
 
-## 4. Cloning
+## 5. Cloning
 
 Clone this repository and also submodules not manageable by conda(or pip)
 
@@ -60,7 +62,7 @@ Clone this repository and also submodules not manageable by conda(or pip)
 git clone --recursive https://github.com/sunsetyerin/BIOF501_term_project.git
 ```
 
-## 5. Python 3 environment
+## 6. Python 3 environment
 
 This repository has been developped using python3.7.3 through python3.7.6 in a
 [miniconda](https://docs.conda.io/en/latest/miniconda.html) environment.
@@ -76,7 +78,7 @@ From a bash terminal:
 snakemake --use-conda --conda-create-envs-only --cores [cores available]
 ```
 
-## 6. Snakemake usage of this repo
+## 7. Snakemake usage of this repo
 
 All scripts, steps and jobs are managed using
 [snakemake](https://snakemake.readthedocs.io/en/stable/#)
@@ -97,7 +99,7 @@ snakemake general --forceall --rulegraph | dot -Tpdf > dag.pdf
 snakemake general --use-conda
 ```
 
-## 7. Perform the processing of a single sample
+## 8. Perform the processing of a single sample
 
 Config files contains the values of variables needed to perform Differential RNA modifications analysis.
 
